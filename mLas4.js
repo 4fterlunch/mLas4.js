@@ -1,7 +1,3 @@
-$( "#fileread" ).change(function(e) {
-    readlas4(e);
-});
-
 function stringFromUInt8(A) {
     let count = A.length;
     let str = "";
