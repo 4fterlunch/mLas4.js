@@ -7,12 +7,22 @@
 </head>
 <body>
     <input id="fileread" type="file" />
+    <input id="headeron" type="checkbox" checked>Header</input>
+    <input id="pointson" type="checkbox" checked>Points</input>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="./mLas4.js"></script>
     <script>
         $( "#fileread" ).change(function(e) {
             readlas4(e);
+        });
+
+        $("#headeron").change(function(e) {
+            _headerOn = !_headerOn;
+        });
+
+        $("#pointson").change(function(e) {
+            _pointsOn = !_pointsOn;
         });
     </script>
 </body>
