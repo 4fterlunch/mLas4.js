@@ -8,6 +8,7 @@ function toString(A) {
     return str;
 }
 
+//used for defining a chunk
 const Block = (name,type,size, func) => {
     return {
         name: name,
@@ -16,11 +17,13 @@ const Block = (name,type,size, func) => {
         func: func
     }
 }
+
 // char - uint8
 // ushort - uint16
 // ulong - uint32
 
-var DEF_LAS1_4 = [
+//las 1.4 header definition
+var DEF_LAS1_4_HEADER = [
     Block("fileSignature", Uint8Array, 4, toString),
     Block("fileSourceId", Uint16Array, 2, null),
     Block("globalEncoding", Uint16Array, 2, null),
@@ -41,9 +44,26 @@ var DEF_LAS1_4 = [
     Block("pointDataRecordLength", Uint16Array, 2, null),
     Block("legacyNumberofPointRecords", Uint32Array, 4, null),
     Block("legacyNumberofPointsByReturn", Uint32Array, 20, null),
+    Block("xScaleFactor", Float64Array, 8, null),
+    Block("yScaleFactor", Float64Array, 8, null),
+    Block("zScaleFactor", Float64Array, 8, null),
+    Block("xOffset", Float64Array, 8, null),
+    Block("yOffset", Float64Array, 8, null),
+    Block("zOffset", Float64Array, 8, null),
+    Block("xMax", Float64Array, 8, null),
+    Block("xMin", Float64Array, 8, null),
+    Block("yMax", Float64Array, 8, null),
+    Block("yMin", Float64Array, 8, null),
+    Block("zMax", Float64Array, 8, null),
+    Block("zMin", Float64Array, 8, null),
+    Block("startOfWaveformDataPacketRecord", BigUint64Array, 8, null),
+    Block("startOfFirstExtendedVariableLengthRecord", BigUint64Array, 8, null),
+    Block("numberOfExtendedVariableLengthRecords", Uint32Array, 4, null),
+    Block("numberOfPointRecords", BigUint64Array, 8, null),
+    Block("numberOfPointsByReturn", BigUint64Array, 120, null),
 
 ];
-console.log(DEF_LAS1_4);
+console.log(DEF_LAS1_4_HEADER);
 
 
 function readlas4(evt) {
@@ -59,27 +79,18 @@ function readlas4(evt) {
             let buffer = r.result;  
             console.log("Parsing Header...");
             try {
-                for (let i = 0; i < DEF_LAS1_4.length; i++) {
-                    var headerBuff = buffer.slice(_idx, _idx + DEF_LAS1_4[i].size);
-                    _idx += DEF_LAS1_4[i].size;
-                    var headerView = DEF_LAS1_4[i].func 
-                                   ? DEF_LAS1_4[i].func(new DEF_LAS1_4[i].type(headerBuff)) 
-                                   : new DEF_LAS1_4[i].type(headerBuff);
-                    console.log(`${DEF_LAS1_4[i].name}: ` + headerView );
+                for (let i = 0; i < DEF_LAS1_4_HEADER.length; i++) {
+                    var headerBuff = buffer.slice(_idx, _idx + DEF_LAS1_4_HEADER[i].size);
+                    _idx += DEF_LAS1_4_HEADER[i].size;
+                    var headerView = DEF_LAS1_4_HEADER[i].func 
+                                   ? DEF_LAS1_4_HEADER[i].func(new DEF_LAS1_4_HEADER[i].type(headerBuff)) 
+                                   : new DEF_LAS1_4_HEADER[i].type(headerBuff);
+                    console.log(`${DEF_LAS1_4_HEADER[i].name}: ` + headerView );
                 }
-
-                // var headerBuff = buffer.slice(0,4);
-                // var headerView = new Uint8Array(headerBuff);
-                // _header.fileSignature = toString(headerView);
-                // console.log("File Signature: " + _header.fileSignature);
-
-
             }
             catch (e) {
                 console.error(e);
             }
-            
-
         }
         r.readAsArrayBuffer(f);
 
