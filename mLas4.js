@@ -14,8 +14,24 @@ const Block = (name,type,size, func) => {
         name: name,
         type: type,
         size: size,
-        func: func
+        func: func,
+        val: null
     }
+}
+
+function getDefinitionElementByName(def, name) {
+    for (let i = 0; i < def.length; i++)
+        if (def[i].name === name)
+            return def[i];
+    return null;
+}
+
+function log(eleId, str) {
+    let out = document.getElementById(eleId);
+    let li = document.createElement('li');
+    let txtNode = document.createTextNode(str);
+    li.appendChild(txtNode);
+    out.appendChild(li);
 }
 
 // char - uint8
@@ -65,32 +81,45 @@ var DEF_LAS1_4_HEADER = [
 ];
 console.log(DEF_LAS1_4_HEADER);
 
+function loadBlocksFromDefinition(def, buffer, startingIndex=0, callback) {
+    let _idx = startingIndex;
+    try {
+        for (let i = 0; i < def.length; i++) {
+            var headerBuff = buffer.slice(_idx, _idx + def[i].size);
+            _idx += def[i].size;
+            var headerView = def[i].func 
+                           ? def[i].func(new def[i].type(headerBuff)) 
+                           : new def[i].type(headerBuff);
+            def[i].val = String(headerView);
+            log("out", `${def[i].name}: ` + headerView );
+        }
+        callback();
+    }
+    catch (e) {
+        console.error(e);
+    }
+}
 
 function readlas4(evt) {
-    let _idx = 0;
-    var _header = {
-        fileSignature:""
-    }
+    let offsetToPointData = -1;
     let f = evt.target.files[0];
     if (f) {
         let r = new FileReader();
         r.onload = function(e) {
             let contents = e.target.result;
             let buffer = r.result;  
-            console.log("Parsing Header...");
-            try {
-                for (let i = 0; i < DEF_LAS1_4_HEADER.length; i++) {
-                    var headerBuff = buffer.slice(_idx, _idx + DEF_LAS1_4_HEADER[i].size);
-                    _idx += DEF_LAS1_4_HEADER[i].size;
-                    var headerView = DEF_LAS1_4_HEADER[i].func 
-                                   ? DEF_LAS1_4_HEADER[i].func(new DEF_LAS1_4_HEADER[i].type(headerBuff)) 
-                                   : new DEF_LAS1_4_HEADER[i].type(headerBuff);
-                    console.log(`${DEF_LAS1_4_HEADER[i].name}: ` + headerView );
+            log("out", "Parsing Header...");
+            loadBlocksFromDefinition(DEF_LAS1_4_HEADER, buffer, 0, () => {
+                offsetToPointData = getDefinitionElementByName(DEF_LAS1_4_HEADER, "offsetToPointData").val;
+                if (offsetToPointData === null || offsetToPointData < 0) {
+                    console.error("offset to point data field is empty.");
+                    log("out", "ERROR: offset to point data field is empty.");
+                    return;
                 }
-            }
-            catch (e) {
-                console.error(e);
-            }
+
+                //try points
+                
+            });
         }
         r.readAsArrayBuffer(f);
 
